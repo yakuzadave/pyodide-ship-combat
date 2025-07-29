@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Fleet Battle Demo</title>
+  <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+  <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+</head>
+<body>
+  <h1>PyScript Fleet Battle Demo</h1>
+  <p>Set the number of rounds and run the skirmish again if you like.</p>
+  <label>Rounds: <input id="rounds" type="number" min="1" value="3" /></label>
+  <button id="run">Run Battle</button>
+  <pre id="output"></pre>
+  <script type="py" output="output">
+import micropip
+await micropip.install("py-rolldice")
+
+from js import document
+from pyodide.ffi import create_proxy
+
+import BATTLE_SIM
+from fleet_setup import demo_fleets
+
+def run_battle(event=None):
+    document.getElementById("output").innerHTML = ""
+    fleet_a, fleet_b = demo_fleets()
+    rounds = int(document.getElementById("rounds").value)
+    BATTLE_SIM.battle(fleet_a, fleet_b, rounds)
+
+run_battle()
+document.getElementById("run").addEventListener("click", create_proxy(run_battle))
+  </script>
+</body>
+</html>
