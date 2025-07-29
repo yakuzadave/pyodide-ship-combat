@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "pyodide-ship-combat"
+version = "0.1.0"
+description = "Battlefleet Gothic-inspired fleet simulator for Pyodide"
+authors = ["Dave Carmocan <yakuzadave@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+py-rolldice = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
