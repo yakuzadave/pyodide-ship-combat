@@ -53,6 +53,17 @@ pip install -r requirements.txt
 poetry install
 ```
 
+### Running the Simulator
+
+After installing dependencies you can run the command line simulator:
+
+```sh
+python BATTLE_SIM.py --rounds 3
+```
+
+This will install `py-rolldice` via `micropip` when executed in Pyodide or use
+your local installation when running on the desktop.
+
 ---
 
 ## Requirements

@@ -3,29 +3,8 @@
 <body>
 <pre id="output"></pre>
 <script type="text/python">
-from models import Ship, ShipSystem, WeaponSystem, WeaponBattery
-
-
-def system_block(eff=100, thresh=50, effect=""):
-    return ShipSystem(efficiency=eff, critical_threshold=thresh, effect=effect)
-
-
-def new_ship(name, class_name, hull, shield, weapons, missiles, crew,
-             leadership, boarding_strength, speed, maneuver, systems, ai):
-    return Ship(
-        name=name,
-        hull=hull,
-        shield=shield,
-        weapons=weapons,
-        crew=crew,
-        leadership=leadership,
-        boarding_strength=boarding_strength,
-        speed=speed,
-        maneuver=maneuver,
-        systems=systems,
-        ai=ai,
-        class_name=class_name,
-    )
+from models import Ship, WeaponSystem, WeaponBattery
+from fleet_setup import system_block, new_ship
 
 # -- Example fleet with varied weapons and systems --
 aurora_weapons = WeaponSystem([

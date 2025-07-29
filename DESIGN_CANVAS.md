@@ -55,7 +55,7 @@ sample code continues to function while using the dataclasses.
 
 ## Usage Pattern
 
-The helper `new_ship` function in the sample interface instantiates `Ship` objects with pre-populated systems. Systems are created using `system_status_block`, which now returns a `ShipSystem` dataclass.
+Utility helpers in `fleet_setup.py` provide `system_block` and `new_ship` functions. They are used by both the CLI simulator and the sample interface to build demo fleets.
 
 These dataclasses replace the previous raw dictionaries, providing clearer
 structure for future expansion while remaining lightweight for Pyodide.
