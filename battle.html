@@ -23,9 +23,17 @@ import BATTLE_SIM
 from fleet_setup import demo_fleets
 
 def run_battle(event=None):
-    document.getElementById("output").innerHTML = ""
+    output = document.getElementById("output")
+    output.innerHTML = ""
     fleet_a, fleet_b = demo_fleets()
-    rounds = int(document.getElementById("rounds").value)
+    value = document.getElementById("rounds").value
+    try:
+        rounds = int(value)
+        if rounds < 1:
+            raise ValueError
+    except Exception:
+        rounds = 3
+        document.getElementById("rounds").value = str(rounds)
     BATTLE_SIM.battle(fleet_a, fleet_b, rounds)
 
 run_battle()
