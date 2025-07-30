@@ -119,7 +119,8 @@ print(f"Explanation: {explanation}")
 import random
 BATTLE_ORDERS = [
     "Brace for Impact", "Lock On", "All Power to Shields", "Reload Ordnance",
-    "Boarding Party", "Fire Everything"
+    "Boarding Party", "Fire Everything", "Combat Repairs", "Disengage",
+    "Offensive Maneuvers", "Run Silent"
 ]
 def random_order():
     order = random.choice(BATTLE_ORDERS)
@@ -161,7 +162,8 @@ class Ship:
 
 BATTLE_ORDERS = [
     "Brace for Impact", "Lock On", "All Power to Shields",
-    "Reload Ordnance", "Boarding Party", "Fire Everything"
+    "Reload Ordnance", "Boarding Party", "Fire Everything",
+    "Combat Repairs", "Disengage", "Offensive Maneuvers", "Run Silent"
 ]
 
 fleet = [

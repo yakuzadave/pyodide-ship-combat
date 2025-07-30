@@ -24,7 +24,19 @@ BATTLE_ORDERS = [
     "Reload Ordnance",
     "Boarding Party",
     "Fire Everything",
+    "Combat Repairs",
+    "Disengage",
+    "Offensive Maneuvers",
+    "Run Silent",
 ]
+
+HAZARDS = {
+    "System Failure": "Random system takes damage",
+    "Gravity Well": "Attack and defense rolls suffer -1",
+    "Minefield": "Ship suffers explosive hull damage",
+    "Nebula": "Sensors obscured, -1 attack",
+    "Radiation Burst": "All systems lose efficiency",
+}
 
 
 async def install_dependencies() -> None:
@@ -49,7 +61,57 @@ def select_orders(fleet: List[Ship]) -> None:
     """Randomly assign orders to each ship."""
     for ship in fleet:
         ship.order = random.choice(BATTLE_ORDERS)
+        ship.attack_mod = 0
+        ship.defense_mod = 0
+        ship.repair_priority = False
+        if ship.order == "Lock On":
+            ship.attack_mod += 2
+        elif ship.order == "Brace for Impact":
+            ship.defense_mod += 2
+        elif ship.order == "Fire Everything":
+            ship.attack_mod += 1
+        elif ship.order == "All Power to Shields":
+            ship.defense_mod += 1
+        elif ship.order == "Combat Repairs":
+            ship.repair_priority = True
+            ship.defense_mod += 1
+        elif ship.order == "Disengage":
+            ship.attack_mod -= 2
+            ship.defense_mod += 1
+        elif ship.order == "Offensive Maneuvers":
+            ship.attack_mod += 1
+            ship.defense_mod -= 1
+        elif ship.order == "Run Silent":
+            ship.attack_mod -= 1
+            ship.defense_mod += 1
         print(f"{ship.name} selects order: {ship.order}")
+
+
+def apply_hazard(ship: Ship, hazard: str) -> None:
+    """Apply a named hazard effect to a single ship."""
+    if rolldice is None:
+        raise RuntimeError("rolldice not loaded")
+    if hazard == "System Failure":
+        system_name = random.choice(list(ship.systems.keys()))
+        ship.systems[system_name].damage(10)
+        print(
+            f"Hazard damages {ship.name}'s {system_name}, now {ship.systems[system_name].efficiency}%"
+        )
+    elif hazard == "Gravity Well":
+        ship.attack_mod -= 1
+        ship.defense_mod -= 1
+        print(f"{ship.name} caught in gravity well: -1 attack and defense")
+    elif hazard == "Minefield":
+        dmg, _ = rolldice.roll_dice("1d6")
+        ship.hull = max(0, ship.hull - int(dmg))
+        print(f"{ship.name} strikes a mine for {dmg} damage (hull {ship.hull})")
+    elif hazard == "Nebula":
+        ship.attack_mod -= 1
+        print(f"{ship.name} enters nebula: -1 attack this round")
+    elif hazard == "Radiation Burst":
+        for system in ship.systems.values():
+            system.damage(5)
+        print(f"{ship.name} hit by radiation burst: all systems degrade")
 
 
 def resolve_hazards(fleet: List[Ship]) -> None:
@@ -57,12 +119,10 @@ def resolve_hazards(fleet: List[Ship]) -> None:
     for ship in fleet:
         if not ship.systems:
             continue
-        if random.random() < 0.1:  # 10% chance a system takes damage
-            system_name = random.choice(list(ship.systems.keys()))
-            ship.systems[system_name].damage(10)
-            print(
-                f"Hazard damages {ship.name}'s {system_name}, now {ship.systems[system_name].efficiency}%"
-            )
+        if random.random() < 0.1:
+            hazard = random.choice(list(HAZARDS.keys()))
+            print(f"{ship.name} encounters hazard: {hazard}")
+            apply_hazard(ship, hazard)
 
 
 def shooting_phase(attacking: List[Ship], defending: List[Ship]) -> None:
@@ -75,10 +135,14 @@ def shooting_phase(attacking: List[Ship], defending: List[Ship]) -> None:
             continue
         target = random.choice(targets)
         roll, _ = rolldice.roll_dice("2d20")
-        if roll > target.shield:
+        attack_total = roll + ship.attack_mod
+        defense_target = target.shield + target.defense_mod
+        if attack_total > defense_target:
             dmg, _ = rolldice.roll_dice("2d6")
             target.hull = max(0, target.hull - int(dmg))
-            print(f"{ship.name} hits {target.name} for {dmg} (hull {target.hull})")
+            print(
+                f"{ship.name} hits {target.name} for {dmg} (hull {target.hull})"
+            )
             if target.hull == 0:
                 print(f"{target.name} destroyed!")
         else:
@@ -119,7 +183,9 @@ def boarding_phase(attacking: List[Ship], defending: List[Ship]) -> None:
                 continue
             target = random.choice(targets)
             atk, _ = rolldice.roll_dice("1d20")
-            if atk + ship.boarding_strength > target.boarding_strength:
+            attack_total = atk + ship.boarding_strength + ship.attack_mod
+            defend_total = target.boarding_strength + target.defense_mod
+            if attack_total > defend_total:
                 dmg, _ = rolldice.roll_dice("1d10")
                 target.hull = max(0, target.hull - int(dmg))
                 print(
@@ -137,7 +203,8 @@ def repair_phase(fleet: List[Ship]) -> None:
         raise RuntimeError("rolldice not loaded")
     for ship in fleet:
         damaged = [s for s in ship.systems.values() if s.status != "Operational"]
-        if damaged and random.random() < 0.5:
+        chance = 1.0 if ship.repair_priority else 0.5
+        if damaged and random.random() < chance:
             system = random.choice(damaged)
             system.repair(10)
             print(
