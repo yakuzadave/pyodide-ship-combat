@@ -1,3 +1,4 @@
+
 import random
 
 from ship_combat.battle_sim import (
@@ -10,6 +11,15 @@ from ship_combat.battle_sim import (
 )
 from ship_combat.fleet_setup import new_ship, system_block
 from ship_combat.models import WeaponSystem, WeaponBattery
+import os
+import sys
+import random
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from BATTLE_SIM import select_orders, shooting_phase, apply_hazard
+from fleet_setup import new_ship, system_block
+from models import WeaponSystem, WeaponBattery
 
 
 def dummy_ship(name):
