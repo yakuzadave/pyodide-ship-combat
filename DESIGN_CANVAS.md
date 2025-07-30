@@ -46,6 +46,12 @@ Key fields:
 - `crew`, `leadership`, `boarding_strength`
 - `class_name`: high level ship classification (frigate, cruiser, etc.)
 - `speed`, `maneuver`: basic movement traits
+- `x`, `y`, `z`: positional coordinates for future targeting logic
+- `heading`: yaw orientation in degrees
+- `pitch`: vertical orientation in degrees
+- Ships advance each round using `speed`, `heading`, and `pitch`
+- Targeting prioritizes the nearest enemy ship using 3D distance
+- Weapon arcs (fore/aft/port/starboard/dorsal/ventral) and range bands gate ballistic fire
 - `systems`: mapping of system names to `ShipSystem`
 - `ai`: description or personality string used for flavour text
 - `order` and `range`: current tactical order and range band

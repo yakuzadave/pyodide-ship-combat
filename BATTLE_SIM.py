@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import random
+import math
 from typing import List
 
 from models import Ship
@@ -37,6 +38,76 @@ HAZARDS = {
     "Nebula": "Sensors obscured, -1 attack",
     "Radiation Burst": "All systems lose efficiency",
 }
+
+# simple mapping of range bands to maximum distance units
+RANGE_BANDS = {
+    "point": 5.0,
+    "short": 10.0,
+    "standard": 20.0,
+    "long": 40.0,
+}
+
+
+# orientation helper functions
+def yaw_to_target(ship: Ship, target: Ship) -> float:
+    """Return yaw angle from ship to target in degrees."""
+    return math.degrees(math.atan2(target.y - ship.y, target.x - ship.x)) % 360
+
+
+def pitch_to_target(ship: Ship, target: Ship) -> float:
+    """Return elevation angle from ship to target in degrees."""
+    horiz = math.hypot(target.x - ship.x, target.y - ship.y)
+    return math.degrees(math.atan2(target.z - ship.z, horiz))
+
+
+def in_arc(ship: Ship, target: Ship, arc: str) -> bool:
+    """Return True if target lies within the specified firing arc."""
+    yaw = (yaw_to_target(ship, target) - ship.heading) % 360
+    pitch = pitch_to_target(ship, target) - ship.pitch
+    if arc == "omni":
+        return True
+    if arc == "fore":
+        return yaw <= 45 or yaw >= 315
+    if arc == "aft":
+        return 135 <= yaw <= 225
+    if arc == "port":
+        return 45 <= yaw <= 135
+    if arc == "starboard":
+        return 225 <= yaw <= 315
+    if arc == "dorsal":
+        return pitch > 20
+    if arc == "ventral":
+        return pitch < -20
+    return True
+
+
+def in_range(ship: Ship, target: Ship, rng: str) -> bool:
+    """Return True if target is within the range band."""
+    max_dist = RANGE_BANDS.get(rng, RANGE_BANDS["standard"])
+    return distance(ship, target) <= max_dist
+
+
+def can_fire(ship: Ship, target: Ship, battery) -> bool:
+    """Determine if a weapon battery can fire at the given target."""
+    return in_range(ship, target, battery.range) and in_arc(ship, target, battery.arc)
+
+
+def distance(a: Ship, b: Ship) -> float:
+    """Euclidean distance between two ships."""
+    dx = a.x - b.x
+    dy = a.y - b.y
+    dz = a.z - b.z
+    return math.sqrt(dx * dx + dy * dy + dz * dz)
+
+
+def move_fleet(fleet: List[Ship]) -> None:
+    """Advance each ship based on its speed and heading."""
+    for ship in fleet:
+        yaw_rad = math.radians(ship.heading)
+        pitch_rad = math.radians(ship.pitch)
+        ship.x += math.cos(yaw_rad) * math.cos(pitch_rad) * ship.speed
+        ship.y += math.sin(yaw_rad) * math.cos(pitch_rad) * ship.speed
+        ship.z += math.sin(pitch_rad) * ship.speed
 
 
 async def install_dependencies() -> None:
@@ -130,23 +201,37 @@ def shooting_phase(attacking: List[Ship], defending: List[Ship]) -> None:
     if rolldice is None:
         raise RuntimeError("rolldice not loaded")
     for ship in attacking:
-        targets = [t for t in defending if t.hull > 0]
-        if not targets or ship.hull <= 0:
+        if ship.hull <= 0:
             continue
-        target = random.choice(targets)
-        roll, _ = rolldice.roll_dice("2d20")
-        attack_total = roll + ship.attack_mod
-        defense_target = target.shield + target.defense_mod
-        if attack_total > defense_target:
-            dmg, _ = rolldice.roll_dice("2d6")
-            target.hull = max(0, target.hull - int(dmg))
-            print(
-                f"{ship.name} hits {target.name} for {dmg} (hull {target.hull})"
-            )
-            if target.hull == 0:
-                print(f"{target.name} destroyed!")
-        else:
-            print(f"{ship.name} misses {target.name}")
+        targets = [t for t in defending if t.hull > 0]
+        targets.sort(key=lambda t: distance(ship, t))
+        if not targets:
+            continue
+        chosen = None
+        valid_batteries = []
+        for tgt in targets:
+            bats = [b for b in ship.weapons.batteries if can_fire(ship, tgt, b)]
+            if bats:
+                chosen = tgt
+                valid_batteries = bats
+                break
+        if not chosen:
+            continue
+        for battery in valid_batteries:
+            roll, _ = rolldice.roll_dice("2d20")
+            attack_total = roll + ship.attack_mod + battery.accuracy
+            defense_target = chosen.shield + chosen.defense_mod
+            if attack_total > defense_target:
+                dmg, _ = rolldice.roll_dice(battery.damage_dice)
+                chosen.hull = max(0, chosen.hull - int(dmg))
+                print(
+                    f"{ship.name} hits {chosen.name} with {battery.name} for {dmg} (hull {chosen.hull})"
+                )
+                if chosen.hull == 0:
+                    print(f"{chosen.name} destroyed!")
+                    break
+            else:
+                print(f"{ship.name} misses {chosen.name} with {battery.name}")
 
 
 def missile_phase(attacking: List[Ship], defending: List[Ship]) -> None:
@@ -159,7 +244,9 @@ def missile_phase(attacking: List[Ship], defending: List[Ship]) -> None:
         targets = [t for t in defending if t.hull > 0]
         if not targets:
             continue
-        target = random.choice(targets)
+        target = min(targets, key=lambda t: distance(ship, t))
+        if not in_range(ship, target, "long"):
+            continue
         ship.weapons.missiles -= 1
         dmg, _ = rolldice.roll_dice("3d6")
         target.hull = max(0, target.hull - int(dmg))
@@ -181,7 +268,9 @@ def boarding_phase(attacking: List[Ship], defending: List[Ship]) -> None:
             targets = [t for t in defending if t.hull > 0]
             if not targets:
                 continue
-            target = random.choice(targets)
+            target = min(targets, key=lambda t: distance(ship, t))
+            if not in_range(ship, target, "point"):
+                continue
             atk, _ = rolldice.roll_dice("1d20")
             attack_total = atk + ship.boarding_strength + ship.attack_mod
             defend_total = target.boarding_strength + target.defense_mod
@@ -219,6 +308,7 @@ def run_round(fleet_a: List[Ship], fleet_b: List[Ship], round_num: int) -> None:
     print(f"\n=== ROUND {round_num} ===")
     select_orders(fleet_a + fleet_b)
     resolve_hazards(fleet_a + fleet_b)
+    move_fleet(fleet_a + fleet_b)
     shooting_phase(fleet_a, fleet_b)
     shooting_phase(fleet_b, fleet_a)
     missile_phase(fleet_a, fleet_b)

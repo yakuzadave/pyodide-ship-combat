@@ -71,6 +71,11 @@ class Ship:
     boarding_strength: int
     class_name: str = "Frigate"
     speed: int = 20
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
+    heading: float = 0.0
+    pitch: float = 0.0
     maneuver: int = 1
     systems: Dict[str, ShipSystem] = field(default_factory=dict)
     ai: str = ""

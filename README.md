@@ -24,6 +24,9 @@ An extensible, web-friendly, fully automated fleet battle simulator inspired by 
 * System degradation, critical hits, and repair attempts
 * Fully compatible with browser/Jupyter/Pyodide (no blocking I/O)
 * Example code for both procedural and OOP usage
+* Basic positional data (x, y, z) plus heading and pitch for each ship
+* Movement each round based on speed, heading, and pitch with nearest-target selection
+* Weapon arcs include dorsal/ventral angles and respect range bands
 
 ---
 
