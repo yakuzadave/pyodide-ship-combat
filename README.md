@@ -52,8 +52,8 @@ To run or test locally (for VSCode, Jupyter Desktop, etc):
 
 ```sh
 pip install -r requirements.txt
-# or
-poetry install
+# or install the package in editable mode
+pip install -e .
 ```
 
 ### Running the Simulator
@@ -61,7 +61,7 @@ poetry install
 After installing dependencies you can run the command line simulator:
 
 ```sh
-python BATTLE_SIM.py --rounds 3
+python -m ship_combat.battle_sim --rounds 3
 ```
 
 This will install `py-rolldice` via `micropip` when executed in Pyodide or use
