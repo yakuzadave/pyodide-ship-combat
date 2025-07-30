@@ -3,6 +3,7 @@ name = "pyodide-ship-combat"
 version = "0.1.0"
 description = "Battlefleet Gothic-inspired fleet simulator for Pyodide"
 authors = ["Dave Carmocan <yakuzadave@gmail.com>"]
+packages = [{ include = "ship_combat" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"

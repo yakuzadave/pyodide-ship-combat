@@ -1,11 +1,6 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from BATTLE_SIM import distance, move_fleet, in_arc, in_range, can_fire
-from fleet_setup import new_ship
-from models import WeaponSystem, WeaponBattery
+from ship_combat.battle_sim import distance, move_fleet, in_arc, in_range, can_fire
+from ship_combat.fleet_setup import new_ship
+from ship_combat.models import WeaponSystem, WeaponBattery
 
 
 def dummy_ship(name, x=0.0, y=0.0, z=0.0, heading=0.0, pitch=0.0):
