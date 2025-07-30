@@ -67,6 +67,15 @@ python BATTLE_SIM.py --rounds 3
 This will install `py-rolldice` via `micropip` when executed in Pyodide or use
 your local installation when running on the desktop.
 
+
+### Running Tests
+
+After installing the requirements, execute:
+
+```sh
+pytest
+```
+
 ### Browser Demo
 
 Open `battle.html` in a modern browser to see the simulation running in PyScript.

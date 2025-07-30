@@ -8,6 +8,13 @@ authors = ["Dave Carmocan <yakuzadave@gmail.com>"]
 python = "^3.10"
 py-rolldice = "*"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
