@@ -76,6 +76,9 @@ class Ship:
     ai: str = ""
     order: Optional[str] = None
     range: str = "standard"
+    attack_mod: int = 0
+    defense_mod: int = 0
+    repair_priority: bool = False
 
     def __getitem__(self, item: str):
         return getattr(self, item)

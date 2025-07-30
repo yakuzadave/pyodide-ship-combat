@@ -59,3 +59,30 @@ Utility helpers in `fleet_setup.py` provide `system_block` and `new_ship` functi
 
 These dataclasses replace the previous raw dictionaries, providing clearer
 structure for future expansion while remaining lightweight for Pyodide.
+
+## Orders and Hazards
+
+Ships randomly select a tactical order each round. Orders modify attack and
+defense rolls or the chance to repair systems:
+
+- **Lock On**: +2 to attack rolls.
+- **Brace for Impact**: +2 to defense.
+- **Fire Everything**: +1 to attack.
+- **All Power to Shields**: +1 to defense.
+- **Combat Repairs**: ship focuses on repairs, gaining a 100% repair chance but
+  suffering reduced firepower.
+- **Disengage**: -2 attack, +1 defense as the ship attempts to withdraw.
+- **Offensive Maneuvers**: +1 attack but -1 defense while maneuvering aggressively.
+- **Run Silent**: -1 attack, +1 defense as weapons go quiet and the ship evades.
+
+Environmental hazards can also affect ships. The `HAZARDS` table currently
+includes:
+
+- **System Failure**: damages a random system.
+- **Gravity Well**: -1 attack and defense for the round.
+- **Minefield**: inflicts 1d6 hull damage.
+- **Nebula**: -1 attack due to obscured sensors.
+- **Radiation Burst**: all systems take 5% damage.
+
+The `apply_hazard()` function handles these effects when `resolve_hazards()`
+randomly assigns a hazard to a ship.
