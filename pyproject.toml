@@ -3,10 +3,18 @@ name = "pyodide-ship-combat"
 version = "0.1.0"
 description = "Battlefleet Gothic-inspired fleet simulator for Pyodide"
 authors = ["Dave Carmocan <yakuzadave@gmail.com>"]
+packages = [{ include = "ship_combat" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 py-rolldice = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
 
 [build-system]
 requires = ["poetry-core"]
