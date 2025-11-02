@@ -17,6 +17,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -270,7 +271,6 @@ class DeploymentManager:
             branch_exists = result.returncode == 0
             
             # Create temporary directory for gh-pages
-            import tempfile
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmpdir = Path(tmpdir)
                 
