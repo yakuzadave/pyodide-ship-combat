@@ -233,6 +233,61 @@ for ship in fleet:
 
 ---
 
+## Deployment
+
+This project includes a deployment script (`deploy.py`) that helps package and deploy the simulator to static hosting services.
+
+### Quick Start
+
+```sh
+# Run tests only
+python deploy.py --test
+
+# Build deployment package
+python deploy.py --build
+
+# Build and deploy to GitHub Pages
+python deploy.py --deploy
+
+# Run full pipeline: test, build, and deploy
+python deploy.py --full
+```
+
+### Deployment Options
+
+**GitHub Pages** (default):
+```sh
+python deploy.py --deploy --target github-pages
+```
+This creates a `gh-pages` branch with the built files. Configure GitHub Pages in your repository settings to use the `gh-pages` branch.
+
+**Netlify**:
+```sh
+python deploy.py --deploy --target netlify
+```
+Requires [Netlify CLI](https://docs.netlify.com/cli/get-started/) to be installed (`npm install -g netlify-cli`).
+
+### Testing Locally
+
+After building, you can test the deployment package locally:
+
+```sh
+cd build
+python -m http.server 8000
+```
+
+Then open http://localhost:8000 in your browser to see the simulator in action.
+
+### What Gets Deployed
+
+The deployment package includes:
+- All Python source files (`ship_combat/` package and root modules)
+- HTML demo files (`battle.html`, `sample_interface.html`)
+- Documentation files (`README.md`, `DESIGN_CANVAS.md`, `ADVANCED_FEATURES.md`)
+- An `index.html` landing page that links to all demos
+
+---
+
 ## Best Practices & Notes
 
 * For Pyodide: `requirements.txt` and `pyproject.toml` are for dev/CI only
