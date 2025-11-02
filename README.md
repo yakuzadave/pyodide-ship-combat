@@ -41,6 +41,16 @@ An extensible, web-friendly, fully automated fleet battle simulator inspired by 
 
 See [ADVANCED_FEATURES.md](ADVANCED_FEATURES.md) for detailed documentation.
 
+### Logging & Visualization (v2.1)
+* **Battle Logger** - Comprehensive event tracking and statistics
+* **Text-Map Visualization** - ASCII battlefield maps with ship positions
+* **Multiple Render Modes** - Full map, compact status, tactical overview
+* **Export Formats** - JSON and text file export for analysis
+* **Round Statistics** - Damage, accuracy, critical hits per round
+* **Event System** - Track every action with structured data
+
+See [LOGGING_AND_VISUALIZATION.md](LOGGING_AND_VISUALIZATION.md) for detailed documentation.
+
 ---
 
 ## Quickstart
