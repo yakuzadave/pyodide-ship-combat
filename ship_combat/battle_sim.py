@@ -8,10 +8,13 @@ import argparse
 import asyncio
 import random
 import math
-from typing import List
+import logging
+from typing import List, Optional
 
 from .models import Ship
 from .fleet_setup import demo_fleets
+from .battle_logger import BattleLogger
+from .battle_map import BattleMap, render_quick_status
 
 try:
     import rolldice  # type: ignore
@@ -216,7 +219,7 @@ async def install_dependencies() -> None:
 # ---------------- Battle Phases -----------------
 
 
-def select_orders(fleet: List[Ship], enemy_fleet: List[Ship] = None) -> None:
+def select_orders(fleet: List[Ship], enemy_fleet: List[Ship] = None, logger: Optional[BattleLogger] = None) -> None:
     """Randomly assign orders to each ship."""
     for ship in fleet:
         ship.order = random.choice(BATTLE_ORDERS)
@@ -271,49 +274,66 @@ def select_orders(fleet: List[Ship], enemy_fleet: List[Ship] = None) -> None:
             ship.power_allocation["shields"] = 20
             ship.power_allocation["engines"] = 60
 
-        print(f"{ship.name} selects order: {ship.order}")
+        if logger:
+            logger.log_order_selection(ship, ship.order)
+        else:
+            print(f"{ship.name} selects order: {ship.order}")
 
 
-def apply_hazard(ship: Ship, hazard: str) -> None:
+def apply_hazard(ship: Ship, hazard: str, logger: Optional[BattleLogger] = None) -> None:
     """Apply a named hazard effect to a single ship."""
     rd = get_rolldice()
     if rd is None:
         raise RuntimeError("rolldice not loaded")
+
+    effect = ""
     if hazard == "System Failure":
         system_name = random.choice(list(ship.systems.keys()))
         ship.systems[system_name].damage(10)
-        print(
-            f"Hazard damages {ship.name}'s {system_name}, now {ship.systems[system_name].efficiency}%"
-        )
+        effect = f"Damages {system_name}, now {ship.systems[system_name].efficiency}%"
+        if not logger:
+            print(f"Hazard damages {ship.name}'s {system_name}, now {ship.systems[system_name].efficiency}%")
     elif hazard == "Gravity Well":
         ship.attack_mod -= 1
         ship.defense_mod -= 1
-        print(f"{ship.name} caught in gravity well: -1 attack and defense")
+        effect = "-1 attack and defense"
+        if not logger:
+            print(f"{ship.name} caught in gravity well: -1 attack and defense")
     elif hazard == "Minefield":
         dmg, _ = rd.roll_dice("1d6")
         ship.hull = max(0, ship.hull - int(dmg))
-        print(f"{ship.name} strikes a mine for {dmg} damage (hull {ship.hull})")
+        effect = f"{dmg} hull damage"
+        if not logger:
+            print(f"{ship.name} strikes a mine for {dmg} damage (hull {ship.hull})")
     elif hazard == "Nebula":
         ship.attack_mod -= 1
-        print(f"{ship.name} enters nebula: -1 attack this round")
+        effect = "-1 attack this round"
+        if not logger:
+            print(f"{ship.name} enters nebula: -1 attack this round")
     elif hazard == "Radiation Burst":
         for system in ship.systems.values():
             system.damage(5)
-        print(f"{ship.name} hit by radiation burst: all systems degrade")
+        effect = "All systems degrade"
+        if not logger:
+            print(f"{ship.name} hit by radiation burst: all systems degrade")
+
+    if logger:
+        logger.log_hazard(ship, hazard, effect)
 
 
-def resolve_hazards(fleet: List[Ship]) -> None:
+def resolve_hazards(fleet: List[Ship], logger: Optional[BattleLogger] = None) -> None:
     """Randomly apply environmental hazards."""
     for ship in fleet:
         if not ship.systems:
             continue
         if random.random() < 0.1:
             hazard = random.choice(list(HAZARDS.keys()))
-            print(f"{ship.name} encounters hazard: {hazard}")
-            apply_hazard(ship, hazard)
+            if not logger:
+                print(f"{ship.name} encounters hazard: {hazard}")
+            apply_hazard(ship, hazard, logger)
 
 
-def shooting_phase(attacking: List[Ship], defending: List[Ship]) -> None:
+def shooting_phase(attacking: List[Ship], defending: List[Ship], logger: Optional[BattleLogger] = None) -> None:
     """Resolve shooting between fleets with heat and critical hit mechanics."""
     rd = get_rolldice()
     if rd is None:
@@ -346,7 +366,10 @@ def shooting_phase(attacking: List[Ship], defending: List[Ship]) -> None:
             # Add heat from firing
             overheated = battery.add_heat()
             if overheated:
-                print(f"{ship.name}'s {battery.name} overheats!")
+                if logger:
+                    logger.log_overheat(ship, battery.name)
+                else:
+                    print(f"{ship.name}'s {battery.name} overheats!")
 
             roll, _ = rd.roll_dice("2d20")
             # Apply power modifier to accuracy
@@ -370,23 +393,35 @@ def shooting_phase(attacking: List[Ship], defending: List[Ship]) -> None:
                     if chosen.systems:
                         system_name = random.choice(list(chosen.systems.keys()))
                         chosen.systems[system_name].damage(15)
-                        print(
-                            f"CRITICAL HIT! {ship.name} strikes {chosen.name}'s {system_name}!"
-                        )
+                        if not logger:
+                            print(
+                                f"CRITICAL HIT! {ship.name} strikes {chosen.name}'s {system_name}!"
+                            )
 
                 chosen.hull = max(0, chosen.hull - damage)
-                hit_type = "CRITICAL" if is_critical else "hits"
-                print(
-                    f"{ship.name} {hit_type} {chosen.name} with {battery.name} for {damage} (hull {chosen.hull})"
-                )
+
+                if logger:
+                    logger.log_shot(ship, chosen, battery.name, True, damage, is_critical)
+                else:
+                    hit_type = "CRITICAL" if is_critical else "hits"
+                    print(
+                        f"{ship.name} {hit_type} {chosen.name} with {battery.name} for {damage} (hull {chosen.hull})"
+                    )
+
                 if chosen.hull == 0:
-                    print(f"{chosen.name} destroyed!")
+                    if logger:
+                        logger.log_ship_destroyed(chosen, ship)
+                    else:
+                        print(f"{chosen.name} destroyed!")
                     break
             else:
-                print(f"{ship.name} misses {chosen.name} with {battery.name}")
+                if logger:
+                    logger.log_shot(ship, chosen, battery.name, False)
+                else:
+                    print(f"{ship.name} misses {chosen.name} with {battery.name}")
 
 
-def missile_phase(attacking: List[Ship], defending: List[Ship]) -> None:
+def missile_phase(attacking: List[Ship], defending: List[Ship], logger: Optional[BattleLogger] = None) -> None:
     """Fire missiles if available."""
     rd = get_rolldice()
     if rd is None:
@@ -402,15 +437,24 @@ def missile_phase(attacking: List[Ship], defending: List[Ship]) -> None:
             continue
         ship.weapons.missiles -= 1
         dmg, _ = rd.roll_dice("3d6")
-        target.hull = max(0, target.hull - int(dmg))
-        print(
-            f"{ship.name} launches missile at {target.name} for {dmg} (hull {target.hull})"
-        )
+        damage = int(dmg)
+        target.hull = max(0, target.hull - damage)
+
+        if logger:
+            logger.log_missile_launch(ship, target, damage)
+        else:
+            print(
+                f"{ship.name} launches missile at {target.name} for {damage} (hull {target.hull})"
+            )
+
         if target.hull == 0:
-            print(f"{target.name} destroyed by missile!")
+            if logger:
+                logger.log_ship_destroyed(target, ship)
+            else:
+                print(f"{target.name} destroyed by missile!")
 
 
-def boarding_phase(attacking: List[Ship], defending: List[Ship]) -> None:
+def boarding_phase(attacking: List[Ship], defending: List[Ship], logger: Optional[BattleLogger] = None) -> None:
     """Attempt boarding actions."""
     rd = get_rolldice()
     if rd is None:
@@ -430,17 +474,29 @@ def boarding_phase(attacking: List[Ship], defending: List[Ship]) -> None:
             defend_total = target.boarding_strength + target.defense_mod
             if attack_total > defend_total:
                 dmg, _ = rd.roll_dice("1d10")
-                target.hull = max(0, target.hull - int(dmg))
-                print(
-                    f"{ship.name} boards {target.name} for {dmg} damage (hull {target.hull})"
-                )
+                damage = int(dmg)
+                target.hull = max(0, target.hull - damage)
+
+                if logger:
+                    logger.log_boarding(ship, target, True, damage)
+                else:
+                    print(
+                        f"{ship.name} boards {target.name} for {damage} damage (hull {target.hull})"
+                    )
+
                 if target.hull == 0:
-                    print(f"{target.name} captured and destroyed!")
+                    if logger:
+                        logger.log_ship_destroyed(target, ship)
+                    else:
+                        print(f"{target.name} captured and destroyed!")
             else:
-                print(f"{ship.name} fails to board {target.name}")
+                if logger:
+                    logger.log_boarding(ship, target, False)
+                else:
+                    print(f"{ship.name} fails to board {target.name}")
 
 
-def repair_phase(fleet: List[Ship]) -> None:
+def repair_phase(fleet: List[Ship], logger: Optional[BattleLogger] = None) -> None:
     """Attempt simple repairs on damaged systems."""
     rd = get_rolldice()
     if rd is None:
@@ -451,22 +507,28 @@ def repair_phase(fleet: List[Ship]) -> None:
         if damaged and random.random() < chance:
             system = random.choice(damaged)
             system.repair(10)
-            print(
-                f"{ship.name} repairs {system.effect or 'a system'} to {system.efficiency}%"
-            )
+            if logger:
+                logger.log_repair(ship, system.effect or 'a system', system.efficiency)
+            else:
+                print(
+                    f"{ship.name} repairs {system.effect or 'a system'} to {system.efficiency}%"
+                )
 
 
-def shield_regeneration_phase(fleet: List[Ship]) -> None:
+def shield_regeneration_phase(fleet: List[Ship], logger: Optional[BattleLogger] = None) -> None:
     """Regenerate shields for all ships based on power allocation."""
     for ship in fleet:
         if ship.hull > 0:
             old_shield = ship.shield
             ship.regenerate_shields()
             if ship.shield > old_shield:
-                print(f"{ship.name} regenerates shields: {old_shield} -> {ship.shield}")
+                if logger:
+                    logger.log_shield_regen(ship, old_shield, ship.shield)
+                else:
+                    print(f"{ship.name} regenerates shields: {old_shield} -> {ship.shield}")
 
 
-def weapon_cooling_phase(fleet: List[Ship]) -> None:
+def weapon_cooling_phase(fleet: List[Ship], logger: Optional[BattleLogger] = None) -> None:
     """Cool down all weapons for all ships."""
     for ship in fleet:
         if ship.hull > 0:
@@ -475,58 +537,129 @@ def weapon_cooling_phase(fleet: List[Ship]) -> None:
                     old_heat = battery.heat
                     battery.cool_down()
                     if old_heat >= battery.max_heat and battery.heat < battery.max_heat:
-                        print(f"{ship.name}'s {battery.name} cooled down (heat: {battery.heat}%)")
+                        if not logger:
+                            print(f"{ship.name}'s {battery.name} cooled down (heat: {battery.heat}%)")
 
 
 # --------------- Simulation Runner ---------------
 
 
-def run_round(fleet_a: List[Ship], fleet_b: List[Ship], round_num: int) -> None:
-    print(f"\n=== ROUND {round_num} ===")
+def run_round(fleet_a: List[Ship], fleet_b: List[Ship], round_num: int,
+              logger: Optional[BattleLogger] = None,
+              battle_map: Optional[BattleMap] = None,
+              show_map: bool = False) -> None:
+    if logger:
+        logger.log_round_start(round_num)
+    else:
+        print(f"\n=== ROUND {round_num} ===")
 
     # Order selection phase (pass enemy fleets for pursuit targeting)
-    select_orders(fleet_a, fleet_b)
-    select_orders(fleet_b, fleet_a)
+    if logger:
+        logger.log_phase("Order Selection")
+    select_orders(fleet_a, fleet_b, logger)
+    select_orders(fleet_b, fleet_a, logger)
 
     # Environmental effects
-    resolve_hazards(fleet_a + fleet_b)
+    if logger:
+        logger.log_phase("Hazard Resolution")
+    resolve_hazards(fleet_a + fleet_b, logger)
 
     # Movement phase (includes formations, pursuit, evasion)
+    if logger:
+        logger.log_phase("Movement")
     move_fleet(fleet_a + fleet_b)
 
+    # Show battle map if requested
+    if show_map and battle_map:
+        print(battle_map.render_complete(fleet_a, fleet_b, round_num, show_range_rings=False))
+
     # Combat phases
-    shooting_phase(fleet_a, fleet_b)
-    shooting_phase(fleet_b, fleet_a)
-    missile_phase(fleet_a, fleet_b)
-    missile_phase(fleet_b, fleet_a)
-    boarding_phase(fleet_a, fleet_b)
-    boarding_phase(fleet_b, fleet_a)
+    if logger:
+        logger.log_phase("Shooting")
+    shooting_phase(fleet_a, fleet_b, logger)
+    shooting_phase(fleet_b, fleet_a, logger)
+
+    if logger:
+        logger.log_phase("Missiles")
+    missile_phase(fleet_a, fleet_b, logger)
+    missile_phase(fleet_b, fleet_a, logger)
+
+    if logger:
+        logger.log_phase("Boarding")
+    boarding_phase(fleet_a, fleet_b, logger)
+    boarding_phase(fleet_b, fleet_a, logger)
 
     # Maintenance phases
-    repair_phase(fleet_a + fleet_b)
-    shield_regeneration_phase(fleet_a + fleet_b)
-    weapon_cooling_phase(fleet_a + fleet_b)
+    if logger:
+        logger.log_phase("Repairs")
+    repair_phase(fleet_a + fleet_b, logger)
+
+    if logger:
+        logger.log_phase("Shield Regeneration")
+    shield_regeneration_phase(fleet_a + fleet_b, logger)
+
+    if logger:
+        logger.log_phase("Weapon Cooling")
+    weapon_cooling_phase(fleet_a + fleet_b, logger)
 
 
-def battle(fleet_a: List[Ship], fleet_b: List[Ship], rounds: int = 3) -> None:
+def battle(fleet_a: List[Ship], fleet_b: List[Ship], rounds: int = 3,
+          log_level: int = logging.INFO,
+          show_map: bool = False,
+          show_stats: bool = True) -> Optional[BattleLogger]:
+    """
+    Run a battle simulation.
+
+    Args:
+        fleet_a: First fleet
+        fleet_b: Second fleet
+        rounds: Number of rounds to simulate
+        log_level: Logging level (logging.DEBUG, INFO, WARNING, ERROR)
+        show_map: Display tactical map each round
+        show_stats: Display battle statistics at end
+
+    Returns:
+        BattleLogger instance with battle statistics
+    """
+    # Initialize logger and battle map
+    logger = BattleLogger(log_level=log_level)
+    battle_map = BattleMap(width=60, height=20, grid_size=50.0) if show_map else None
+
+    # Start battle
+    logger.start_battle(fleet_a, fleet_b)
+
+    # Show initial positions if map enabled
+    if show_map and battle_map:
+        print(battle_map.render_complete(fleet_a, fleet_b, 0, show_range_rings=True))
+
+    # Run rounds
     for rnd in range(1, rounds + 1):
         if not fleet_a or not fleet_b:
             break
-        run_round(fleet_a, fleet_b, rnd)
+        run_round(fleet_a, fleet_b, rnd, logger, battle_map, show_map)
         fleet_a = [s for s in fleet_a if s.hull > 0]
         fleet_b = [s for s in fleet_b if s.hull > 0]
         if not fleet_a or not fleet_b:
             break
-    print("\n--- Battle Over ---")
-    for ship in fleet_a + fleet_b:
-        status = "DESTROYED" if ship.hull <= 0 else f"Hull {ship.hull}"
-        print(f"{ship.name}: {status}")
+
+    # End battle
+    logger.end_battle()
+
+    # Final status
+    print(render_quick_status(fleet_a, fleet_b))
+
+    # Show statistics
+    if show_stats:
+        print(logger.generate_report())
+
+    return logger
 
 
-async def main_async(rounds: int) -> None:
+async def main_async(rounds: int = 3, log_level: int = logging.INFO,
+                    show_map: bool = False, show_stats: bool = True) -> None:
     await install_dependencies()
     fleet_a, fleet_b = demo_fleets()
-    battle(fleet_a, fleet_b, rounds)
+    battle(fleet_a, fleet_b, rounds, log_level, show_map, show_stats)
 
 
 def main() -> None:
@@ -534,8 +667,21 @@ def main() -> None:
     parser.add_argument(
         "--rounds", type=int, default=3, help="Number of rounds to simulate"
     )
+    parser.add_argument(
+        "--log-level", type=str, default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Logging level"
+    )
+    parser.add_argument(
+        "--show-map", action="store_true", help="Display tactical map each round"
+    )
+    parser.add_argument(
+        "--no-stats", action="store_true", help="Don't display battle statistics"
+    )
     args = parser.parse_args()
-    asyncio.run(main_async(args.rounds))
+
+    log_level = getattr(logging, args.log_level)
+    asyncio.run(main_async(args.rounds, log_level, args.show_map, not args.no_stats))
 
 
 if __name__ == "__main__":

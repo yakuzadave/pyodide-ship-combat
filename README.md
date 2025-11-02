@@ -41,6 +41,16 @@ An extensible, web-friendly, fully automated fleet battle simulator inspired by 
 
 See [ADVANCED_FEATURES.md](ADVANCED_FEATURES.md) for detailed documentation.
 
+### Logging & Visualization Features (v2.1)
+* **Structured Logging** - Configurable log levels (DEBUG, INFO, WARNING, ERROR) with timestamps
+* **Text-Based Battle Maps** - ASCII tactical display showing ship positions, headings, and range rings
+* **Battle Statistics** - Comprehensive analytics including accuracy, damage dealt/taken, critical hit rates
+* **Battle Reports** - Detailed post-battle summaries with top performers and combat events
+* **Quick Status Display** - Visual health bars showing hull and shield status
+* **Event Tracking** - Complete battle history with queryable event log
+
+See [LOGGING.md](LOGGING.md) for complete logging and visualization guide.
+
 ---
 
 ## Quickstart
