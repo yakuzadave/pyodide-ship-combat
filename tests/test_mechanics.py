@@ -28,6 +28,8 @@ def dummy_ship(name, x=0.0, y=0.0, z=0.0, heading=0.0, pitch=0.0):
 
 def test_move_and_distance():
     ship = dummy_ship("A")
+    # Set power allocation for exact baseline speed (33% engines = 1.0x)
+    ship.power_allocation = {"weapons": 33, "shields": 34, "engines": 33}
     move_fleet([ship])
     assert ship.x == 10 and ship.y == 0 and ship.z == 0
     target = dummy_ship("B", x=10)

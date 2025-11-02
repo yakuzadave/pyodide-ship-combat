@@ -19,6 +19,7 @@ An extensible, web-friendly, fully automated fleet battle simulator inspired by 
 
 ## Features
 
+### Core Mechanics
 * Modular and extensible: Easily add ships, hazards, or custom rules
 * Automated AI orders and target selection each round
 * System degradation, critical hits, and repair attempts
@@ -27,6 +28,18 @@ An extensible, web-friendly, fully automated fleet battle simulator inspired by 
 * Basic positional data (x, y, z) plus heading and pitch for each ship
 * Movement each round based on speed, heading, and pitch with nearest-target selection
 * Weapon arcs include dorsal/ventral angles and respect range bands
+
+### Advanced Features (v2.0)
+* **Fleet Formations** - Ships can follow formation leaders with relative positioning
+* **Evasive Maneuvers** - Dynamic heading changes with defense bonuses
+* **Pursuit & Intercept** - Predictive targeting for moving enemies
+* **Weapon Heat Management** - Weapons overheat from sustained fire and require cooling
+* **Power Management** - Allocate power between weapons, shields, and engines
+* **Shield Regeneration** - Shields automatically regenerate based on power allocation
+* **Critical Hits** - High rolls deal bonus damage and damage ship systems
+* **14 Battle Orders** - Including new tactical options like "Pursue Target" and "Power to Weapons"
+
+See [ADVANCED_FEATURES.md](ADVANCED_FEATURES.md) for detailed documentation.
 
 ---
 
