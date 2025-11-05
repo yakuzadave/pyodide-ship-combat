@@ -47,17 +47,17 @@ class BattleMap:
         # 8-directional arrows
         if 337.5 <= h or h < 22.5:
             return '→'  # East
-        elif 22.5 <= h < 67.5:
+        elif h < 67.5:
             return '↗'  # Northeast
-        elif 67.5 <= h < 112.5:
+        elif h < 112.5:
             return '↑'  # North
-        elif 112.5 <= h < 157.5:
+        elif h < 157.5:
             return '↖'  # Northwest
-        elif 157.5 <= h < 202.5:
+        elif h < 202.5:
             return '←'  # West
-        elif 202.5 <= h < 247.5:
+        elif h < 247.5:
             return '↙'  # Southwest
-        elif 247.5 <= h < 292.5:
+        elif h < 292.5:
             return '↓'  # South
         else:  # 292.5 <= h < 337.5
             return '↘'  # Southeast
