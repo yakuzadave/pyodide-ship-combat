@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 import math
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from .models import Ship
+
+__all__ = ['BattleMap', 'render_quick_status']
 
 
 class BattleMap:
@@ -47,17 +49,17 @@ class BattleMap:
         # 8-directional arrows
         if 337.5 <= h or h < 22.5:
             return '→'  # East
-        elif 22.5 <= h < 67.5:
+        elif h < 67.5:
             return '↗'  # Northeast
-        elif 67.5 <= h < 112.5:
+        elif h < 112.5:
             return '↑'  # North
-        elif 112.5 <= h < 157.5:
+        elif h < 157.5:
             return '↖'  # Northwest
-        elif 157.5 <= h < 202.5:
+        elif h < 202.5:
             return '←'  # West
-        elif 202.5 <= h < 247.5:
+        elif h < 247.5:
             return '↙'  # Southwest
-        elif 247.5 <= h < 292.5:
+        elif h < 292.5:
             return '↓'  # South
         else:  # 292.5 <= h < 337.5
             return '↘'  # Southeast
@@ -222,7 +224,7 @@ class BattleMap:
         lines.append("FLEET A:")
         for idx, ship in enumerate(fleet_a):
             marker = chr(ord('A') + idx) if idx < 26 else 'A'
-            status = "DESTROYED" if ship.hull <= 0 else f"Hull:{ship.hull}/{ship.hull + ship.shield}"
+            status = "DESTROYED" if ship.hull <= 0 else f"Hull:{ship.hull} Shld:{ship.shield}/{ship.max_shield}"
             heading_arrow = self._get_heading_arrow(ship.heading)
             elev = self._get_elevation_marker(ship.z)
             lines.append(
@@ -234,7 +236,7 @@ class BattleMap:
         lines.append("\nFLEET B:")
         for idx, ship in enumerate(fleet_b):
             marker = str(idx + 1) if idx < 9 else '9'
-            status = "DESTROYED" if ship.hull <= 0 else f"Hull:{ship.hull}/{ship.hull + ship.shield}"
+            status = "DESTROYED" if ship.hull <= 0 else f"Hull:{ship.hull} Shld:{ship.shield}/{ship.max_shield}"
             heading_arrow = self._get_heading_arrow(ship.heading)
             elev = self._get_elevation_marker(ship.z)
             lines.append(

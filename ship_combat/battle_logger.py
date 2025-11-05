@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from .models import Ship
 
+__all__ = ['BattleEvent', 'BattleStatistics', 'BattleLogger']
+
 
 @dataclass
 class BattleEvent:
@@ -286,6 +288,13 @@ class BattleLogger:
             self.stats.fleet_b_missiles_fired += 1
             self.stats.fleet_b_total_damage_dealt += damage
 
+        # Update fleet-level damage taken for the target fleet
+        target_fleet = 'a' if target.name in self.fleet_a_names else 'b'
+        if target_fleet == 'a':
+            self.stats.fleet_a_total_damage_taken += damage
+        else:
+            self.stats.fleet_b_total_damage_taken += damage
+
         # Update per-ship stats
         self.stats.ship_damage_dealt[attacker.name] = \
             self.stats.ship_damage_dealt.get(attacker.name, 0) + damage
@@ -315,6 +324,25 @@ class BattleLogger:
             self.stats.boarding_successes += 1
 
         if success:
+            # Track damage statistics for successful boarding
+            if damage > 0:
+                fleet = 'a' if attacker.name in self.fleet_a_names else 'b'
+                if fleet == 'a':
+                    self.stats.fleet_a_total_damage_dealt += damage
+                else:
+                    self.stats.fleet_b_total_damage_dealt += damage
+                
+                target_fleet = 'a' if target.name in self.fleet_a_names else 'b'
+                if target_fleet == 'a':
+                    self.stats.fleet_a_total_damage_taken += damage
+                else:
+                    self.stats.fleet_b_total_damage_taken += damage
+                
+                self.stats.ship_damage_dealt[attacker.name] = \
+                    self.stats.ship_damage_dealt.get(attacker.name, 0) + damage
+                self.stats.ship_damage_taken[target.name] = \
+                    self.stats.ship_damage_taken.get(target.name, 0) + damage
+            
             self.logger.info(f"{attacker.name} boards {target.name} for {damage} damage")
         else:
             self.logger.debug(f"{attacker.name} fails to board {target.name}")
