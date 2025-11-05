@@ -319,8 +319,17 @@ class BattleLogger:
         self.stats.boarding_attempts += 1
         if success:
             self.stats.boarding_successes += 1
-
-        if success:
+            # Track damage statistics for successful boarding
+            if damage > 0:
+                fleet = 'a' if attacker.name in self.fleet_a_names else 'b'
+                if fleet == 'a':
+                    self.stats.fleet_a_total_damage_dealt += damage
+                else:
+                    self.stats.fleet_b_total_damage_dealt += damage
+                self.stats.ship_damage_dealt[attacker.name] = \
+                    self.stats.ship_damage_dealt.get(attacker.name, 0) + damage
+                self.stats.ship_damage_taken[target.name] = \
+                    self.stats.ship_damage_taken.get(target.name, 0) + damage
             self.logger.info(f"{attacker.name} boards {target.name} for {damage} damage")
         else:
             self.logger.debug(f"{attacker.name} fails to board {target.name}")
