@@ -122,13 +122,18 @@ class Ship:
     max_shield: int = 0  # Maximum shield capacity (set on init)
     shield_regen_rate: int = 5  # Shield points regenerated per round
 
+    # Hull tracking
+    max_hull: int = 0  # Maximum hull capacity (set on init)
+
     # Critical Hit Tracking
     critical_damage_taken: int = 0  # Count of critical hits sustained
 
     def __post_init__(self):
-        """Initialize max_shield if not already set."""
+        """Initialize max_shield and max_hull if not already set."""
         if self.max_shield == 0:
             self.max_shield = self.shield
+        if self.max_hull == 0:
+            self.max_hull = self.hull
 
     def regenerate_shields(self) -> None:
         """Regenerate shields based on power allocation and regen rate."""

@@ -222,7 +222,7 @@ class BattleMap:
         lines.append("FLEET A:")
         for idx, ship in enumerate(fleet_a):
             marker = chr(ord('A') + idx) if idx < 26 else 'A'
-            status = "DESTROYED" if ship.hull <= 0 else f"Hull:{ship.hull}/{ship.hull + ship.shield}"
+            status = "DESTROYED" if ship.hull <= 0 else f"H:{ship.hull}/{ship.max_hull} S:{ship.shield}/{ship.max_shield}"
             heading_arrow = self._get_heading_arrow(ship.heading)
             elev = self._get_elevation_marker(ship.z)
             lines.append(
@@ -234,7 +234,7 @@ class BattleMap:
         lines.append("\nFLEET B:")
         for idx, ship in enumerate(fleet_b):
             marker = str(idx + 1) if idx < 9 else '9'
-            status = "DESTROYED" if ship.hull <= 0 else f"Hull:{ship.hull}/{ship.hull + ship.shield}"
+            status = "DESTROYED" if ship.hull <= 0 else f"H:{ship.hull}/{ship.max_hull} S:{ship.shield}/{ship.max_shield}"
             heading_arrow = self._get_heading_arrow(ship.heading)
             elev = self._get_elevation_marker(ship.z)
             lines.append(
