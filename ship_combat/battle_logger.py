@@ -292,6 +292,12 @@ class BattleLogger:
         self.stats.ship_damage_taken[target.name] = \
             self.stats.ship_damage_taken.get(target.name, 0) + damage
 
+        # Update fleet-level damage taken for the target fleet
+        target_fleet = 'a' if target.name in self.fleet_a_names else 'b'
+        if target_fleet == 'a':
+            self.stats.fleet_a_total_damage_taken += damage
+        else:
+            self.stats.fleet_b_total_damage_taken += damage
         self.logger.info(
             f"{attacker.name} launches missile at {target.name} for {damage} damage (Hull: {target.hull})"
         )
