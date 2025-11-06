@@ -116,7 +116,7 @@ class DeploymentManager:
         """Copy documentation files to build directory."""
         self.log("Copying documentation...")
         
-        doc_files = ['README.md', 'DESIGN_CANVAS.md', 'ADVANCED_FEATURES.md', 'LICENSE']
+        doc_files = ['README.md', 'DESIGN_CANVAS.md', 'ADVANCED_FEATURES.md', 'LOGGING.md', 'LICENSE']
         for filename in doc_files:
             src = self.root_dir / filename
             if src.exists():

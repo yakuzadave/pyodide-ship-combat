@@ -2,41 +2,126 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Fleet Battle Demo</title>
+  <title>Fleet Battle Demo - Enhanced Logging</title>
   <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
   <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+  <style>
+    body {
+      font-family: monospace;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #1a1a1a;
+      color: #00ff00;
+    }
+    h1 {
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    .controls {
+      background-color: #2a2a2a;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #00ff00;
+    }
+    label {
+      margin-right: 15px;
+      color: #00ff00;
+    }
+    input, select, button {
+      background-color: #000;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      padding: 5px 10px;
+      font-family: monospace;
+    }
+    button {
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #003300;
+    }
+    #output {
+      background-color: #000;
+      color: #00ff00;
+      padding: 15px;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+  </style>
 </head>
 <body>
-  <h1>PyScript Fleet Battle Demo</h1>
-  <p>Set the number of rounds and run the skirmish again if you like.</p>
-  <label>Rounds: <input id="rounds" type="number" min="1" value="3" /></label>
-  <button id="run">Run Battle</button>
-  <pre id="output"></pre>
+  <h1>⚔️ PyScript Fleet Battle Demo - Enhanced Logging ⚔️</h1>
+
+  <div class="controls">
+    <p>Configure your battle simulation with advanced logging and visualization:</p>
+    <label>Rounds: <input id="rounds" type="number" min="1" max="10" value="3" /></label>
+    <label>Log Level:
+      <select id="log-level">
+        <option value="DEBUG">DEBUG (Detailed)</option>
+        <option value="INFO" selected>INFO (Standard)</option>
+        <option value="WARNING">WARNING (Minimal)</option>
+        <option value="ERROR">ERROR (Errors Only)</option>
+      </select>
+    </label>
+    <label><input id="show-map" type="checkbox" checked /> Show Tactical Map</label>
+    <label><input id="show-stats" type="checkbox" checked /> Show Battle Statistics</label>
+    <button id="run">🚀 Run Battle</button>
+  </div>
+
+  <pre id="output">Loading battle simulator...</pre>
+
   <script type="py" output="output">
 import micropip
 await micropip.install("py-rolldice")
 
 from js import document
 from pyodide.ffi import create_proxy
+import logging
 
 import BATTLE_SIM
 from fleet_setup import demo_fleets
 
 def run_battle(event=None):
     output = document.getElementById("output")
-    output.innerHTML = ""
-    fleet_a, fleet_b = demo_fleets()
-    value = document.getElementById("rounds").value
+    output.innerHTML = "Initializing battle...\n\n"
+
+    # Get configuration
     try:
-        rounds = int(value)
+        rounds = int(document.getElementById("rounds").value)
         if rounds < 1:
-            raise ValueError
+            rounds = 3
     except Exception:
         rounds = 3
-        document.getElementById("rounds").value = str(rounds)
-    BATTLE_SIM.battle(fleet_a, fleet_b, rounds)
 
+    log_level_str = document.getElementById("log-level").value
+    log_level = getattr(logging, log_level_str, logging.INFO)
+
+    show_map = document.getElementById("show-map").checked
+    show_stats = document.getElementById("show-stats").checked
+
+    # Create fleets
+    fleet_a, fleet_b = demo_fleets()
+
+    # Run battle with enhanced logging
+    BATTLE_SIM.battle(
+        fleet_a,
+        fleet_b,
+        rounds=rounds,
+        log_level=log_level,
+        show_map=show_map,
+        show_stats=show_stats
+    )
+
+# Initial run
 run_battle()
+
+# Attach event listener
 document.getElementById("run").addEventListener("click", create_proxy(run_battle))
   </script>
 </body>
