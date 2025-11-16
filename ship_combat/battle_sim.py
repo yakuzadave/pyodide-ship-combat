@@ -25,14 +25,12 @@ except Exception:  # rolldice may not be installed in Pyodide yet
 def get_rolldice():
     """Get rolldice module, checking sys.modules for mocked version."""
     global rolldice
-    if rolldice is not None:
-        return rolldice
-    # Check if it's been mocked in tests
     import sys
-    if "rolldice" in sys.modules:
-        rolldice = sys.modules["rolldice"]
-        return rolldice
-    return None
+    mocked = sys.modules.get("rolldice")
+    if mocked is not None and mocked is not rolldice:
+        rolldice = mocked
+        return mocked
+    return rolldice
 
 BATTLE_ORDERS = [
     "Brace for Impact",
