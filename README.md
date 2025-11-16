@@ -121,8 +121,9 @@ asyncio.run(BattleApp(StaticSnapshotFeed(snapshots)).run_async())
 ```
 
 Use the key bindings `t`, `s`, `l`, and `m` to jump between Tactical, Ship Detail,
-Battle Log, and Summary screens. The UI automatically updates whenever the
-snapshot feed produces a new entry.
+Battle Log, and Summary screens, and press `[` or `]` to cycle the focused ship in
+the detail view. The UI automatically updates whenever the snapshot feed produces a
+new entry.
 
 
 ### Running Tests

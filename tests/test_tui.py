@@ -43,4 +43,18 @@ def test_battle_app_renders_snapshot() -> None:
             summary = summary_screen.query_one("#summary-panel", Static)
             assert "Round 1" in str(summary.render())
 
+            pilot.app.action_show_ship_detail()
+            await pilot.pause()
+            detail_screen = pilot.app.get_screen("ship-detail")
+            detail = detail_screen.query_one("#ship-detail-panel", Static)
+            assert "Alpha" in str(detail.render())
+
+            pilot.app.action_select_next_ship()
+            await pilot.pause()
+            assert "Beta" in str(detail.render())
+
+            pilot.app.action_select_previous_ship()
+            await pilot.pause()
+            assert "Alpha" in str(detail.render())
+
     asyncio.run(_run())

@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Dict, Optional
+from dataclasses import replace
+from typing import Dict, List, Optional
 
 from textual import on
 from textual.app import App, ComposeResult, ScreenStackError
@@ -191,6 +192,8 @@ class BattleApp(App):
         Binding("s", "show_ship_detail", "Ship Detail"),
         Binding("l", "show_log", "Battle Log"),
         Binding("m", "show_summary", "Summary"),
+        Binding("]", "select_next_ship", "Next Ship", show=False),
+        Binding("[", "select_previous_ship", "Previous Ship", show=False),
         Binding("q", "quit", "Quit"),
     ]
 
@@ -199,8 +202,10 @@ class BattleApp(App):
         self.snapshot_feed = snapshot_feed or StaticSnapshotFeed([])
         self._snapshot_task: Optional[asyncio.Task[None]] = None
         self.latest_snapshot: Optional[BattleSnapshot] = None
+        self._latest_raw_snapshot: Optional[BattleSnapshot] = None
         self._screens: Dict[str, _ScreenBase] = {}
         self._has_active_screen = False
+        self._selected_ship_name: Optional[str] = None
 
     def on_mount(self) -> None:
         self._screens = {
@@ -216,10 +221,68 @@ class BattleApp(App):
 
     async def _consume_snapshots(self) -> None:
         async for snapshot in self.snapshot_feed:
-            self.latest_snapshot = snapshot
-            for screen in self._screens.values():
-                if screen.is_mounted:
-                    screen.update_snapshot(snapshot)
+            self._latest_raw_snapshot = snapshot
+            self._sync_selection_from_snapshot(snapshot)
+            self.latest_snapshot = self._apply_selection(snapshot)
+            self._update_screens_with_snapshot(self.latest_snapshot)
+
+    def _sync_selection_from_snapshot(self, snapshot: BattleSnapshot) -> None:
+        if snapshot.selected_ship is not None:
+            self._selected_ship_name = snapshot.selected_ship.name
+            return
+        if self._selected_ship_name is not None:
+            if not any(
+                ship.name == self._selected_ship_name and ship.hull > 0
+                for ship in snapshot.fleet_a + snapshot.fleet_b
+            ):
+                self._selected_ship_name = None
+
+    def _update_screens_with_snapshot(self, snapshot: BattleSnapshot) -> None:
+        for screen in self._screens.values():
+            if screen.is_mounted:
+                screen.update_snapshot(snapshot)
+
+    def _resolve_selected_ship(self, snapshot: BattleSnapshot) -> Optional[Ship]:
+        ships: List[Ship] = snapshot.fleet_a + snapshot.fleet_b
+        if self._selected_ship_name:
+            for ship in ships:
+                if ship.name == self._selected_ship_name and ship.hull > 0:
+                    return ship
+        if snapshot.selected_ship and snapshot.selected_ship.hull > 0:
+            return snapshot.selected_ship
+        for ship in ships:
+            if ship.hull > 0:
+                return ship
+        return None
+
+    def _apply_selection(self, snapshot: BattleSnapshot) -> BattleSnapshot:
+        selected = self._resolve_selected_ship(snapshot)
+        if selected is snapshot.selected_ship:
+            return snapshot
+        if selected is None and snapshot.selected_ship is None:
+            return snapshot
+        return replace(snapshot, selected_ship=selected)
+
+    def _select_ship_by_offset(self, offset: int) -> None:
+        if self._latest_raw_snapshot is None:
+            return
+        ships = [
+            ship
+            for ship in self._latest_raw_snapshot.fleet_a + self._latest_raw_snapshot.fleet_b
+            if ship.hull > 0
+        ]
+        if not ships:
+            self._selected_ship_name = None
+            return
+        names = [ship.name for ship in ships]
+        if self._selected_ship_name in names:
+            idx = names.index(self._selected_ship_name)
+        else:
+            idx = 0 if offset >= 0 else len(names) - 1
+        idx = (idx + offset) % len(names)
+        self._selected_ship_name = names[idx]
+        self.latest_snapshot = self._apply_selection(self._latest_raw_snapshot)
+        self._update_screens_with_snapshot(self.latest_snapshot)
 
     def _activate_screen(self, name: str) -> None:
         if not self._has_active_screen:
@@ -246,6 +309,12 @@ class BattleApp(App):
 
     def action_show_summary(self) -> None:
         self._activate_screen("summary")
+
+    def action_select_next_ship(self) -> None:
+        self._select_ship_by_offset(1)
+
+    def action_select_previous_ship(self) -> None:
+        self._select_ship_by_offset(-1)
 
 
 __all__ = [
