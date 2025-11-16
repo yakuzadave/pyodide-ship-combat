@@ -48,6 +48,7 @@ See [ADVANCED_FEATURES.md](ADVANCED_FEATURES.md) for detailed documentation.
 * **Battle Reports** - Detailed post-battle summaries with top performers and combat events
 * **Quick Status Display** - Visual health bars showing hull and shield status
 * **Event Tracking** - Complete battle history with queryable event log
+* **Textual Tactical UI** - Navigate Tactical, Ship Detail, Log, and Summary screens backed by battle snapshots
 
 See [LOGGING.md](LOGGING.md) for complete logging and visualization guide.
 
@@ -90,6 +91,39 @@ python -m ship_combat.battle_sim --rounds 3
 This will install `py-rolldice` via `micropip` when executed in Pyodide or use
 your local installation when running on the desktop.
 
+### Launching the Textual Tactical UI
+
+The `ship_combat.tui` package contains a Textual-based application that reuses the
+`BattleMap` renderings to present a multi-screen terminal interface. Provide it
+with an async iterable of `BattleSnapshot` objects (for example, from a controller
+that yields the fleet state after each phase) and run the app:
+
+```python
+import asyncio
+from ship_combat.models import Ship, WeaponSystem
+from ship_combat.tui import BattleApp, BattleSnapshot, StaticSnapshotFeed
+
+def frigate(name: str) -> Ship:
+    return Ship(name=name, hull=30, shield=20, weapons=WeaponSystem(), crew=80,
+                leadership=7, boarding_strength=4)
+
+snapshots = [
+    BattleSnapshot(
+        round_number=1,
+        fleet_a=[frigate("Vanguard")],
+        fleet_b=[frigate("Corsair")],
+        log_lines=["Vanguard opens fire"],
+        summary_lines=["Alpha strike underway"],
+    )
+]
+
+asyncio.run(BattleApp(StaticSnapshotFeed(snapshots)).run_async())
+```
+
+Use the key bindings `t`, `s`, `l`, and `m` to jump between Tactical, Ship Detail,
+Battle Log, and Summary screens. The UI automatically updates whenever the
+snapshot feed produces a new entry.
+
 
 ### Running Tests
 
@@ -113,6 +147,8 @@ Minimal `requirements.txt`:
 
 ```
 py-rolldice
+pytest
+textual>=0.44
 ```
 
 (You may add others as needed—keep it pure Python or Pyodide-compatible!)
