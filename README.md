@@ -140,6 +140,12 @@ Open `battle.html` in a modern browser to see the simulation running in PyScript
 The page installs `py-rolldice` with `micropip`, runs a short battle on load, and
 lets you re-run it with a different number of rounds.
 
+### Marimo notebook + GitHub Pages
+- Open `notebooks/combat_simulation.py` with `python -m marimo run notebooks/combat_simulation.py`
+  to explore an annotated battle walkthrough.
+- CI (`marimo-pages` workflow) exports the notebook to static HTML and publishes it
+  to GitHub Pages.
+
 ---
 
 ## Requirements
@@ -150,6 +156,7 @@ Minimal `requirements.txt`:
 py-rolldice
 pytest
 textual>=0.44
+marimo>=0.10,<0.11
 ```
 
 (You may add others as needed—keep it pure Python or Pyodide-compatible!)
@@ -353,4 +360,3 @@ import micropip
 await micropip.install("py-rolldice")
 import rolldice
 ```
-
