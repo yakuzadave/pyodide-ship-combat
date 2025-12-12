@@ -2,3 +2,4 @@ py-rolldice
 pytest
 textual>=0.44
 marimo>=0.10,<0.11
+plotly>=5,<7
