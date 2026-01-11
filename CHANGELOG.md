@@ -4,6 +4,78 @@ Append-only log of batched work completion for pyodide-ship-combat PR improvemen
 
 ---
 
+## Batch-002 — Documentation Audit & Improvement
+
+**Date**: 2026-01-11  
+**Status**: In Progress (75% complete)  
+**Branch**: `copilot/improve-project-documentation`  
+**PR**: #27
+
+### Summary of Changes
+
+Created comprehensive contributor documentation and testing guides following systematic review of existing documentation.
+
+### Files Created
+
+1. **CONTRIBUTING.md** (10,122 bytes)
+   - Complete contributor guidelines including workflow, branching, testing
+   - Code style standards and Pyodide constraints
+   - Pull request process with comprehensive checklist
+   - Common tasks and examples for contributors
+   - Recognition guidelines
+
+2. **.github/PULL_REQUEST_TEMPLATE.md** (2,281 bytes)
+   - Standardized PR submission template
+   - Type of change categories
+   - Testing and browser compatibility checklists
+   - Documentation and deployment notes sections
+
+3. **TESTING.md** (10,991 bytes)
+   - Comprehensive testing guide with quick start
+   - Test organization and all pytest commands
+   - Writing tests with best practices and mocking patterns
+   - Known issues documented (6 failing tests, 97% pass rate)
+   - Coverage, debugging, and CI/CD information
+   - Quick reference guide
+
+### Documentation Reviewed
+
+- README.md - Verified comprehensive and accurate
+- AGENTS.md - Confirmed AI agent guidance is current
+- DESIGN_CANVAS.md - Validated design documentation
+
+### Key Findings
+
+1. **Missing Documentation Identified**
+   - No CONTRIBUTING.md existed (now created)
+   - No PR template existed (now created)
+   - No comprehensive testing guide (now created)
+
+2. **Existing Documentation Quality**
+   - README.md: Excellent - covers all major features
+   - AGENTS.md: Good - provides clear AI agent guidance
+   - DESIGN_CANVAS.md: Good - documents core architecture
+
+3. **Remaining Reviews**
+   - ADVANCED_FEATURES.md - Not yet reviewed
+   - LOGGING.md - Not yet reviewed
+   - SHIP_BUILDING.md - Not yet reviewed
+
+### Issues Encountered
+
+- None - documentation creation proceeding smoothly
+- PR template already existed but was empty, replaced with comprehensive version
+
+### Next Steps
+
+- Review remaining documentation files
+- Document known limitations
+- Finalize Batch-002
+- Update all tracking files
+- Commit and push changes
+
+---
+
 ## Batch-001 — Infrastructure Setup
 
 **Date**: 2026-01-11  
