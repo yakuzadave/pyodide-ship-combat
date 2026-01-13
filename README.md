@@ -125,7 +125,6 @@ Battle Log, and Summary screens, and press `[` or `]` to cycle the focused ship 
 the detail view. The UI automatically updates whenever the snapshot feed produces a
 new entry.
 
-
 ### Running Tests
 
 After installing the requirements, execute:
