@@ -306,13 +306,13 @@ All batches currently tracked in this STATUS report are complete. Any additional
 
 ## Final Artifact Reference
 
-When Batch-001 is complete, this section will contain links to:
+All tracking artifacts for Batches 001–004 are now available:
 - ✅ TASKS.md (current version)
 - ✅ PR_INVENTORY.md (current version)
 - ✅ STATUS.md (this file)
 - ✅ CHANGELOG.md (current version)
-- ⏳ Test results summary (pending)
-- ⏳ Batch-001 completion report (pending)
+- ✅ Test results summary (current for Batches 001–004)
+- ✅ Batch-001 completion report (completed)
 
 ---
 
