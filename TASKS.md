@@ -9,7 +9,7 @@
 
 - [x] Read TASKS.md fully and pick next batch ONLY from unchecked tasks.
 - [x] Confirm this run's batch + exit criteria are explicitly listed under "1) Current Batch".
-- [ ] End of run: update TASKS.md + STATUS.md + PR_INVENTORY.md, produce artifact, output link + changelog + next plan.
+- [x] End of run: update TASKS.md + STATUS.md + PR_INVENTORY.md, produce artifact, output link + changelog + next plan.
 
 ---
 
