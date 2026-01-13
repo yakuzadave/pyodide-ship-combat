@@ -137,7 +137,7 @@ class FrozenDict(dict):
 
 **Technical Approach**:
 - Uses pytest for test framework (consistent with existing tests)
-- Stubsrolldice with deterministic values
+- Stubs rolldice with deterministic values
 - Creates sample fleets and runs complete battles
 - Validates:
   - Battles complete without errors
