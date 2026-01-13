@@ -18,6 +18,7 @@ This initiative implements a systematic framework for working on open PRs and im
 
 ## What Changed This Run
 
+> Note: The details below describe the completion of Batch-002 and are retained as part of the historical progression of this initiative. More recent batches (including Batch-004) are documented in subsequent STATUS.md updates.
 ### Batch-002: Documentation Audit & Improvement ✅ COMPLETED
 
 **New Files Created:**
