@@ -1,5 +1,20 @@
 from .models import Ship, ShipSystem, WeaponSystem, WeaponBattery
 from .fleet_setup import demo_fleets, new_ship, system_block
+from .star_system import (
+    Planet,
+    JumpPoint,
+    StarSystem,
+    generate_star_system,
+    link_systems,
+    PLANET_TYPES,
+)
+from .campaign import (
+    Empire,
+    Colony,
+    CampaignFleet,
+    CampaignEvent,
+    CampaignManager,
+)
 from .battle_sim import (
     BATTLE_ORDERS,
     HAZARDS,
@@ -43,6 +58,19 @@ __all__ = [
     "demo_fleets",
     "new_ship",
     "system_block",
+    # Star system models
+    "Planet",
+    "JumpPoint",
+    "StarSystem",
+    "generate_star_system",
+    "link_systems",
+    "PLANET_TYPES",
+    # Campaign layer
+    "Empire",
+    "Colony",
+    "CampaignFleet",
+    "CampaignEvent",
+    "CampaignManager",
     # Battle mechanics
     "BATTLE_ORDERS",
     "HAZARDS",
