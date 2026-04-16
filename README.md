@@ -134,6 +134,12 @@ After installing the requirements, execute:
 pytest
 ```
 
+To exercise the end-to-end battle smoke scenarios, run:
+
+```sh
+pytest tests/e2e
+```
+
 ### Browser Demo
 
 Open `battle.html` in a modern browser to see the simulation running in PyScript.
