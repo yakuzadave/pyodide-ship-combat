@@ -1,6 +1,7 @@
 import random
 import sys
 from unittest.mock import Mock
+import pytest
 
 # Mock rolldice before importing battle_sim
 mock_rolldice = Mock()
@@ -32,8 +33,15 @@ from ship_combat.battle_sim import (
     boarding_phase,
     repair_phase,
 )
+import ship_combat.battle_sim as battle_sim
 from ship_combat.fleet_setup import new_ship, system_block
 from ship_combat.models import WeaponSystem, WeaponBattery
+
+
+@pytest.fixture(autouse=True)
+def use_module_rolldice_mock(monkeypatch):
+    """Keep this module's rolldice mock isolated from other test modules."""
+    monkeypatch.setattr(battle_sim, "get_rolldice", lambda: mock_rolldice)
 
 
 def dummy_ship(name):
@@ -133,4 +141,3 @@ def test_repair_phase_priority():
     repair_phase([ship])
     assert ship.systems["engines"].efficiency == 50
     assert ship.systems["engines"].status == "Operational"
-

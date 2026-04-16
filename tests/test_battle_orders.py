@@ -32,6 +32,7 @@ mock_rolldice.roll_dice = mock_roll
 sys.modules["rolldice"] = mock_rolldice
 
 from ship_combat.models import Ship, WeaponSystem, WeaponBattery, ShipSystem
+import ship_combat.battle_sim as battle_sim
 from ship_combat.battle_sim import (
     select_orders,
     move_fleet,
@@ -40,6 +41,12 @@ from ship_combat.battle_sim import (
     weapon_cooling_phase,
     distance,
 )
+
+
+@pytest.fixture(autouse=True)
+def use_module_rolldice_mock(monkeypatch):
+    """Keep this module's rolldice mock isolated from other test modules."""
+    monkeypatch.setattr(battle_sim, "get_rolldice", lambda: mock_rolldice)
 
 
 @pytest.fixture

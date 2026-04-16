@@ -14,6 +14,7 @@ mock_rolldice = MagicMock()
 sys.modules['rolldice'] = mock_rolldice
 
 from ship_combat.ship_builder import ShipBuilder, quick_ship, randomized_ship
+import ship_combat.battle_sim as battle_sim
 from ship_combat.fleet_generator import (
     FleetGenerator,
     quick_fleet,
@@ -33,6 +34,12 @@ from ship_combat.models import Ship
 def get_rolldice():
     """Get mocked rolldice module."""
     return sys.modules['rolldice']
+
+
+@pytest.fixture(autouse=True)
+def use_module_rolldice_mock(monkeypatch):
+    """Keep this module's rolldice mock isolated from other test modules."""
+    monkeypatch.setattr(battle_sim, "get_rolldice", get_rolldice)
 
 
 class TestShipBuilderIntegration:
