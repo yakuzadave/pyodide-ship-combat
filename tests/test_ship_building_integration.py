@@ -11,6 +11,26 @@ import pytest
 
 # Mock rolldice before importing battle_sim
 mock_rolldice = MagicMock()
+
+
+def _mock_roll(dice_str: str):
+    """Deterministic dice roller matching the shared test convention."""
+    if dice_str == "2d20":
+        return (30, "30")
+    elif dice_str == "1d20":
+        return (15, "15")
+    elif dice_str == "2d6":
+        return (7, "7")
+    elif dice_str == "3d6":
+        return (10, "10")
+    elif dice_str == "1d6":
+        return (4, "4")
+    elif dice_str == "1d10":
+        return (6, "6")
+    return (10, "10")
+
+
+mock_rolldice.roll_dice.side_effect = _mock_roll
 sys.modules['rolldice'] = mock_rolldice
 
 from ship_combat.ship_builder import ShipBuilder, quick_ship, randomized_ship
