@@ -39,7 +39,7 @@ def get_rolldice():
 @pytest.fixture(autouse=True)
 def use_module_rolldice_mock(monkeypatch):
     """Keep this module's rolldice mock isolated from other test modules."""
-    monkeypatch.setattr(battle_sim, "get_rolldice", get_rolldice)
+    monkeypatch.setattr(battle_sim, "get_rolldice", lambda: mock_rolldice)
 
 
 class TestShipBuilderIntegration:
