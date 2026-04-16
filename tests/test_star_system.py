@@ -250,10 +250,25 @@ class TestLinkSystems:
         assert s1.jump_points[0].stability == pytest.approx(0.8)
         assert s2.jump_points[0].stability == pytest.approx(0.8)
 
-    def test_link_does_not_duplicate_existing(self):
+    def test_link_does_not_deduplicate(self):
+        # link_systems does not check for existing connections — that is the
+        # caller's responsibility.  Calling it twice creates two jump-point
+        # pairs; callers should check get_jump_point() first if they want
+        # idempotent linking.
+        s1 = StarSystem(id="s1", name="A")
+        s2 = StarSystem(id="s2", name="B")
+        # Idiomatic guard: only link if no existing jump point exists
+        if s1.get_jump_point(s2.id) is None:
+            link_systems(s1, s2)
+        if s1.get_jump_point(s2.id) is None:
+            link_systems(s1, s2)
+        # Guard prevents the second call, so we still have exactly one pair
+        assert len(s1.jump_points) == 1
+
+    def test_link_without_guard_creates_duplicate(self):
+        # Without the guard, a second call adds another pair.
         s1 = StarSystem(id="s1", name="A")
         s2 = StarSystem(id="s2", name="B")
         link_systems(s1, s2)
-        # Call again — should add another pair (caller's responsibility)
         link_systems(s1, s2)
         assert len(s1.jump_points) == 2

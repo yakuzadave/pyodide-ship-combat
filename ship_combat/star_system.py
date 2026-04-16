@@ -82,7 +82,7 @@ class JumpPoint:
         """Return True if the empire may use this jump point."""
         if not self.is_discovered:
             return False
-        return self.discovered_by == empire_id or self.is_discovered
+        return True
 
 
 @dataclass

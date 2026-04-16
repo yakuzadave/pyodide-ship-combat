@@ -489,6 +489,10 @@ class CampaignManager:
         Returns:
             A fully initialised :class:`CampaignManager`.
         """
+        # Deferred import: fleet_generator imports from models which imports
+        # from battle_sim.  Importing at module level would create a circular
+        # dependency since campaign.py is itself part of the ship_combat
+        # package.  The import cost is negligible in practice.
         from .fleet_generator import quick_fleet
 
         rng = random.Random(seed)
