@@ -21,7 +21,7 @@ class FrozenDict(dict):
     def __init__(self, mapping: Mapping | None = None):
         super().__init__(mapping or {})
 
-    def _immutable(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+    def _immutable(self, *args: object, **kwargs: object) -> None:
         raise TypeError("FrozenDict is immutable")
 
     __setitem__ = _immutable
